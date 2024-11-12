@@ -89,6 +89,17 @@ namespace Breakout {
 
 	Texture2D ResourceManager::LoadTextureFromFile(const char* file, bool alpha)
 	{
-		return Texture2D();
+		Texture2D texture;
+		if (alpha) {
+			texture.m_InternalFormat = GL_RGBA;
+			texture.m_ImageFormat = GL_RGBA;
+		}
+
+		int width, height, numChannels;
+		unsigned char* data = stbi_load(file, &width, &height, &numChannels, 0);
+
+		texture.Generate(width, height, data);
+		stbi_image_free(data);
+		return texture;
 	}
 }
