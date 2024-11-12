@@ -18,8 +18,6 @@ namespace Breakout {
 	private:
 		static std::shared_ptr<spdlog::logger> s_Logger;
 	};
-
-
 }
 
 #ifndef BK_LOG
