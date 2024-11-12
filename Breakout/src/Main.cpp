@@ -1,8 +1,11 @@
-#include <iostream>
+#include "Log.h"
+
 
 int main()
 {
-	std::cout << "Hello, World!" << std::endl;
+	Breakout::Log::Init();
+
+	BK_INFO("Hello, Logger!");
 	return 0;
 }
 
