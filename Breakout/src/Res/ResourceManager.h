@@ -12,6 +12,22 @@
 
 namespace Breakout {
 
+	/*
+		Layout for shader files in storage:
+
+		{projectName}/Resources/ShaderName/ShaderName.fs.glsl
+		{projectName}/Resources/ShaderName/ShaderName.gs.glsl
+		{projectName}/Resources/ShaderName/ShaderName.vs.glsl
+	*/
+
+
+	struct ShaderFileBundle
+	{
+		const char* fShaderFile;
+		const char* gShaderFile = nullptr;
+		const char* vShaderFile;
+	};
+
 
 
 	class ResourceManager
@@ -19,6 +35,9 @@ namespace Breakout {
 	public:
 		static std::map<std::string, Shader> s_Shaders;
 		static std::map<std::string, Texture2D> s_Textures;
+
+		static void InitShaders();
+		static void InitTextures();
 
 		static Shader LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name);
 		static Shader GetShader(std::string name);
@@ -29,7 +48,7 @@ namespace Breakout {
 		static void Clear();
 	private:
 		ResourceManager() {}
-		static Shader LoadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFIle = nullptr);
+		static Shader LoadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile = nullptr);
 		static Texture2D LoadTextureFromFile(const char* file, bool alpha);
 	};
 

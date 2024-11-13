@@ -3,14 +3,64 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <filesystem>
 
 #include "stb_image.h"
 
 namespace Breakout {
 
+	const char* SHADERS_PATH = "Resources\\Shaders";
+	const char* TEXTURES_PATH = "Resources\\Textures";
 
 	std::map<std::string, Texture2D>    ResourceManager::s_Textures;
 	std::map<std::string, Shader>       ResourceManager::s_Shaders;
+
+	void ResourceManager::InitShaders()
+	{
+		std::string path = SHADERS_PATH; // Should be replaced by some constant
+		for (const auto& dir : std::filesystem::directory_iterator(path)) {
+			std::string name;
+			std::string vertexPath;
+			std::string fragmentPath;
+			std::string gShaderPath;
+
+			name = dir.path().string().substr(dir.path().string().find_last_of('\\') + 1);
+			for (const auto& entry : std::filesystem::directory_iterator(dir.path())) {
+				std::string entryPath = entry.path().string();
+				if (!entryPath.substr(entryPath.length() - 7).compare("vs.glsl")) {
+					vertexPath = entryPath;
+				}
+				else if (!entryPath.substr(entryPath.length() - 7).compare("fs.glsl")) {
+					fragmentPath = entryPath;
+				}
+				else if (!entryPath.substr(entryPath.length() - 7).compare("gs.glsl")) {
+					gShaderPath = entryPath;
+				}
+			}
+
+			if (gShaderPath.empty()) {
+				// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), nullptr, name);
+				BK_TRACE("CALL::LOADSHADER::ARGS\nVSHADERFILE = {0}\nFSHADERFILE = {1}\nGSHADERFILE = nullptr\nNAME = {2}",
+					vertexPath.c_str(), fragmentPath.c_str(), name);
+			}
+			else {
+				// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
+				BK_TRACE("CALL::LOADSHADER::ARGS\nVSHADERFILE = {0}\nFSHADERFILE = {1}\nGSHADERFILE = {2}\nNAME = {3}",
+					vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
+			}
+		}
+	}
+
+	void ResourceManager::InitTextures()
+	{
+		std::string path = TEXTURES_PATH;
+		for (const auto& entry : std::filesystem::directory_iterator(path)) {
+			std::string name = entry.path().string().substr(entry.path().string().find_last_of('\\') + 1);
+
+			BK_TRACE("CALL::LOADTEXTURE::ARGS\nFILE = {0}\nALPHA = true\nNAME = {1}", entry.path().string().c_str(), name);
+			// LoadTexture(entry.path().string().c_str(), true, name); // We're assuming all textures have an alpha component.
+		}
+	}
 
 	Shader ResourceManager::LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name)
 	{
@@ -42,8 +92,6 @@ namespace Breakout {
 			GLCall(glDeleteTextures(1, &i.second.m_ID));
 	}
 
-
-
 	Shader ResourceManager::LoadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile)
 	{
 		std::string vertexCode;
@@ -51,20 +99,19 @@ namespace Breakout {
 		std::string geometryCode;
 		try
 		{
-			// open files
 			std::ifstream vertexShaderFile(vShaderFile);
 			std::ifstream fragmentShaderFile(fShaderFile);
 			std::stringstream vShaderStream, fShaderStream;
-			// read file's buffer contents into streams
+
 			vShaderStream << vertexShaderFile.rdbuf();
 			fShaderStream << fragmentShaderFile.rdbuf();
-			// close file handlers
+
 			vertexShaderFile.close();
 			fragmentShaderFile.close();
-			// convert stream into string
+
 			vertexCode = vShaderStream.str();
 			fragmentCode = fShaderStream.str();
-			// if geometry shader path is present, also load a geometry shader
+
 			if (gShaderFile != nullptr)
 			{
 				std::ifstream geometryShaderFile(gShaderFile);
@@ -81,7 +128,7 @@ namespace Breakout {
 		const char* vShaderCode = vertexCode.c_str();
 		const char* fShaderCode = fragmentCode.c_str();
 		const char* gShaderCode = geometryCode.c_str();
-		// 2. now create shader object from source code
+
 		Shader shader;
 		shader.Compile(vShaderCode, fShaderCode, gShaderFile != nullptr ? gShaderCode : nullptr);
 		return shader;
