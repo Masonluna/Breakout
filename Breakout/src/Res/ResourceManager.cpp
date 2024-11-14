@@ -36,6 +36,7 @@ namespace Breakout {
 		}
 	}
 
+
 	Shader ResourceManager::LoadShader(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile, std::string name)
 	{
 		s_Shaders[name] = LoadShaderFromFile(vShaderFile, fShaderFile, gShaderFile);
