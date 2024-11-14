@@ -5,6 +5,7 @@
 
 #include <map>
 #include <string>
+#include <filesystem>
 
 #include "Graphics/Texture.h"
 #include "Graphics/Shader.h"
@@ -48,6 +49,9 @@ namespace Breakout {
 		static void Clear();
 	private:
 		ResourceManager() {}
+
+		static void InitShaderBundle(const std::filesystem::directory_entry& entry, std::string name);
+
 		static Shader LoadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile = nullptr);
 		static Texture2D LoadTextureFromFile(const char* file, bool alpha);
 	};

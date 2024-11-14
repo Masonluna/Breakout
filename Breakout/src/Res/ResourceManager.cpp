@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include <filesystem>
 
 #include "stb_image.h"
 
@@ -18,36 +17,11 @@ namespace Breakout {
 	void ResourceManager::InitShaders()
 	{
 		std::string path = SHADERS_PATH; // Should be replaced by some constant
-		for (const auto& dir : std::filesystem::directory_iterator(path)) {
+		for (const std::filesystem::directory_entry& dir : std::filesystem::directory_iterator(path)) {
 			std::string name;
-			std::string vertexPath;
-			std::string fragmentPath;
-			std::string gShaderPath;
-
 			name = dir.path().string().substr(dir.path().string().find_last_of('\\') + 1);
-			for (const auto& entry : std::filesystem::directory_iterator(dir.path())) {
-				std::string entryPath = entry.path().string();
-				if (!entryPath.substr(entryPath.length() - 7).compare("vs.glsl")) {
-					vertexPath = entryPath;
-				}
-				else if (!entryPath.substr(entryPath.length() - 7).compare("fs.glsl")) {
-					fragmentPath = entryPath;
-				}
-				else if (!entryPath.substr(entryPath.length() - 7).compare("gs.glsl")) {
-					gShaderPath = entryPath;
-				}
-			}
+			InitShaderBundle(dir, name);
 
-			if (gShaderPath.empty()) {
-				// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), nullptr, name);
-				BK_TRACE("CALL::LOADSHADER::ARGS\nVSHADERFILE = {0}\nFSHADERFILE = {1}\nGSHADERFILE = nullptr\nNAME = {2}",
-					vertexPath.c_str(), fragmentPath.c_str(), name);
-			}
-			else {
-				// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
-				BK_TRACE("CALL::LOADSHADER::ARGS\nVSHADERFILE = {0}\nFSHADERFILE = {1}\nGSHADERFILE = {2}\nNAME = {3}",
-					vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
-			}
 		}
 	}
 
@@ -57,7 +31,7 @@ namespace Breakout {
 		for (const auto& entry : std::filesystem::directory_iterator(path)) {
 			std::string name = entry.path().string().substr(entry.path().string().find_last_of('\\') + 1);
 
-			BK_TRACE("CALL::LOADTEXTURE::ARGS\nFILE = {0}\nALPHA = true\nNAME = {1}", entry.path().string().c_str(), name);
+			BK_TRACE("CALL::LOADTEXTURE::ARGS\n     FILE = {0}\n    ALPHA = true\n     NAME = {1}", entry.path().string().c_str(), name);
 			// LoadTexture(entry.path().string().c_str(), true, name); // We're assuming all textures have an alpha component.
 		}
 	}
@@ -91,6 +65,40 @@ namespace Breakout {
 		for (auto i : s_Textures)
 			GLCall(glDeleteTextures(1, &i.second.m_ID));
 	}
+
+	void ResourceManager::InitShaderBundle(const std::filesystem::directory_entry& dir, std::string name)
+	{
+		std::string vertexPath;
+		std::string fragmentPath;
+		std::string gShaderPath;
+
+		for (const std::filesystem::directory_entry& entry : std::filesystem::directory_iterator(dir.path())) {
+			std::string entryPath = entry.path().string();
+
+			if (!entryPath.substr(entryPath.length() - 7).compare("vs.glsl")) {
+				vertexPath = entryPath;
+			}
+			else if (!entryPath.substr(entryPath.length() - 7).compare("fs.glsl")) {
+				fragmentPath = entryPath;
+			}
+			else if (!entryPath.substr(entryPath.length() - 7).compare("gs.glsl")) {
+				gShaderPath = entryPath;
+			}
+
+		}
+
+		if (gShaderPath.empty()) {
+			// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), nullptr, name);
+			BK_TRACE("CALL::LOADSHADER::ARGS\n    VSHADERFILE = {0}\n    FSHADERFILE = {1}\n    GSHADERFILE = nullptr\n           NAME = {2}",
+				vertexPath.c_str(), fragmentPath.c_str(), name);
+		}
+		else {
+			// LoadShader(vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
+			BK_TRACE("CALL::LOADSHADER::ARGS\n    VSHADERFILE = {0}\n    FSHADERFILE = {1}\n    GSHADERFILE = {2}\n           NAME = {3}",
+				vertexPath.c_str(), fragmentPath.c_str(), gShaderPath.c_str(), name);
+		}
+	}
+
 
 	Shader ResourceManager::LoadShaderFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile)
 	{
